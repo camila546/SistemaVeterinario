@@ -1,7 +1,13 @@
+package cr.ac.ucenfotec.bl.entities.Consulta;
+
+import cr.ac.ucenfotec.bl.entities.Mascota.Mascota;
+import cr.ac.ucenfotec.bl.entities.Veterinario.Veterinario;
+
 import java.time.LocalDate;
 import java.time.LocalTime;
 
 public class Consulta {
+    private int idConsulta;
     private String tipo;
     private LocalDate fecha;
     private LocalTime hora;
@@ -116,15 +122,13 @@ public class Consulta {
     }
     @Override
     public String toString() {
-        return "\nEXPEDIENTE CLÍNICO\n" +
-                "Paciente: " + paciente.getNombre() + " (" + paciente.getEspecie() + ")\n" +
-                "Veterinario: " + medico.getNombre() + " - " + medico.getEspecialidad() + "\n" +
-                "Tipo de consulta: " + tipo + "\n" +
-                "Fecha: " + fecha + "\n" +
-                "Hora: " + hora + "\n" +
-                "Estado: " + estado + "\n" +
-                "Diagnóstico:\n" + diagnostico + "\n" +
-                "Costo total (IVA 13%): ₡" + calcularCostoTotal(13);
+        String nombrePaciente = (paciente != null) ? paciente.getNombre() : "Registrado en BD";
+        String nombreMedico = (medico != null) ? medico.getNombre() : "Registrado en BD";
 
+        return "Consulta | Tipo: " + tipo + " | Fecha: " + fecha + " " + hora +
+                " | Costo: ₡" + costo + " | Estado: " + estado +
+                " | Diagnóstico: " + diagnostico +
+                " | Paciente: " + nombrePaciente +
+                " | Médico: " + nombreMedico;
     }
 }

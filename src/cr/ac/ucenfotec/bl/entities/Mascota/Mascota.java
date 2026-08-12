@@ -1,4 +1,4 @@
-import java.util.Objects;
+package cr.ac.ucenfotec.bl.entities.Mascota;
 
 public class Mascota {
     //atributos
@@ -74,11 +74,6 @@ public class Mascota {
     }
     @Override
     public String toString() {
-        return "Mascota:" +
-                "idMascota: " + idMascota + '\'' +
-                ", nombre: " + nombre + '\'' +
-                ", especie: " + especie + '\'' +
-                ", raza: " + raza + '\'' +
-                ", edad: " + edad;
+        return "Mascota: " + nombre + " (" + especie + " - " + raza + ", " + edad + " años) ID: " + idMascota;
     }
 }
