@@ -1,5 +1,7 @@
 package cr.ac.ucenfotec.bl.entities.Mascota;
 
+import cr.ac.ucenfotec.bl.Exceptions.EntidadNoEncontradaException;
+import cr.ac.ucenfotec.bl.entities.Cliente.DAOCliente;
 import cr.ac.ucenfotec.dl.Connector;
 
 import java.sql.ResultSet;
@@ -10,7 +12,20 @@ public class DAOMascota {
     private static String statement;
     private static String query;
 
-    public static String insertarMascota(Mascota mascotaInsertar, int idClienteDB) throws Exception {
+    public static Mascota buscarMascotaPorID(int idMascotaDB) throws Exception {
+        query = "SELECT * FROM t_mascotas WHERE id = " + idMascotaDB + ";";
+        ResultSet resultado = Connector.getConnection().ejecutarQuery(query);
+        if (resultado.next()) {
+            return new Mascota(resultado.getString("id_mascota"), resultado.getString("nombre"), resultado.getString("especie"), resultado.getString("raza"), resultado.getInt("edad"));
+        }
+        return null;
+    }
+    public static String insertarMascota(Mascota mascotaInsertar, int idClienteDB) throws EntidadNoEncontradaException, Exception {
+        // Validar que el cliente exista antes de asignarle una mascota
+        if (DAOCliente.buscarClientePorID(idClienteDB) == null) {
+            throw new EntidadNoEncontradaException("No se puede registrar la mascota: El cliente con el ID " + idClienteDB + " no existe.");
+        }
+
         statement = "INSERT INTO t_mascotas (id_cliente, id_mascota, nombre, especie, raza, edad) VALUES ("
                 + idClienteDB + ", '"
                 + mascotaInsertar.getIdMascota() + "', '"
@@ -18,6 +33,7 @@ public class DAOMascota {
                 + mascotaInsertar.getEspecie() + "', '"
                 + mascotaInsertar.getRaza() + "', "
                 + mascotaInsertar.getEdad() + ");";
+
         Connector.getConnection().ejecutarStatement(statement);
         return "La mascota se registró en la base de datos correctamente.";
     }

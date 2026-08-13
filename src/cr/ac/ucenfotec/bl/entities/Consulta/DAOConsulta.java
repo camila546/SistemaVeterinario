@@ -1,8 +1,12 @@
 package cr.ac.ucenfotec.bl.entities.Consulta;
 
+import cr.ac.ucenfotec.bl.Exceptions.EntidadNoEncontradaException;
+import cr.ac.ucenfotec.bl.entities.Mascota.DAOMascota;
+import cr.ac.ucenfotec.bl.entities.Veterinario.DAOVeterinario;
+import cr.ac.ucenfotec.bl.entities.Veterinario.Veterinario;
 import cr.ac.ucenfotec.dl.Connector;
 
-import java.sql.ResultSet;
+import java.sql.*;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
@@ -12,8 +16,16 @@ public class DAOConsulta {
     private static String statement;
     private static String query;
 
-    public static String insertarConsulta(Consulta consultaInsertar, int idMascotaDB, int idVeterinarioDB) throws Exception {
-        statement = "INSERT INTO t_consultas (tipo, fecha, hora, costo, diagnostico, estado, idMascota, idVeterinario) VALUES ('"
+    public static String insertarConsulta(Consulta consultaInsertar, int idMascotaDB, int idVeterinarioDB) throws EntidadNoEncontradaException, Exception {
+        if (DAOMascota.buscarMascotaPorID(idMascotaDB) == null) {
+            throw new EntidadNoEncontradaException("No se puede registrar la consulta: La mascota con el ID " + idMascotaDB + " no existe.");
+        }
+
+        if (DAOVeterinario.buscarVeterinarioPorID(idVeterinarioDB) == null) {
+            throw new EntidadNoEncontradaException("No se puede registrar la consulta: El veterinario con el ID " + idVeterinarioDB + " no existe.");
+        }
+
+        statement = "INSERT INTO t_consultas (tipo, fecha, hora, costo, diagnostico, estado, id_mascota, id_veterinario) VALUES ('"
                 + consultaInsertar.getTipo() + "', '"
                 + consultaInsertar.getFecha() + "', '"
                 + consultaInsertar.getHora() + "', "
@@ -89,4 +101,16 @@ public class DAOConsulta {
         Connector.getConnection().ejecutarStatement(statement);
         return "La consulta se eliminó de la base de datos correctamente.";
     }
+
+    public static boolean existeCitaEnHorario(int idVeterinario, int idMascota, LocalDate fecha, LocalTime hora) throws Exception {
+        String sql = "SELECT COUNT(*) FROM t_consultas WHERE (id_veterinario = " + idVeterinario +
+                " OR id_mascota = " + idMascota + ")" +
+                " AND fecha = '" + fecha + "' AND hora = '" + hora + "';";
+        ResultSet rs = Connector.getConnection().ejecutarQuery(sql);
+        if (rs.next()) {
+            return rs.getInt(1) > 0;
+        }
+        return false;
+    }
 }
+

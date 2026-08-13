@@ -1,5 +1,7 @@
 package cr.ac.ucenfotec.bl.logic;
 
+import cr.ac.ucenfotec.bl.Exceptions.CedulaDuplicadaException;
+import cr.ac.ucenfotec.bl.Exceptions.EntidadNoEncontradaException;
 import cr.ac.ucenfotec.bl.entities.Cliente.Cliente;
 import cr.ac.ucenfotec.bl.entities.Cliente.DAOCliente;
 
@@ -31,5 +33,14 @@ public class GestorCliente {
 
     public static String eliminarCliente(int idCliente) throws Exception {
         return DAOCliente.eliminarCliente(idCliente);
+    }
+    public void registrarCliente(String nombre, String apellidos, String cedula, String telefono, String correo)
+            throws CedulaDuplicadaException, Exception {
+        Cliente nuevoCliente = new Cliente(nombre, apellidos, cedula, telefono, correo);
+        DAOCliente.insertarCliente(nuevoCliente);
+    }
+
+    public Cliente buscarClientePorCedula(String cedula) throws EntidadNoEncontradaException, Exception {
+        return DAOCliente.obtenerClienteObligatorio(cedula);
     }
 }

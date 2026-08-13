@@ -1,5 +1,7 @@
 package cr.ac.ucenfotec.bl.entities.Cliente;
 
+import cr.ac.ucenfotec.bl.Exceptions.CedulaDuplicadaException;
+import cr.ac.ucenfotec.bl.Exceptions.EntidadNoEncontradaException;
 import cr.ac.ucenfotec.dl.Connector;
 
 import java.sql.ResultSet;
@@ -11,15 +13,43 @@ public class DAOCliente {
     private static String statement;
     private static String query;
 
-    public static String insertarCliente(Cliente clienteInsertar) throws Exception {
-        statement = "INSERT INTO t_clientes (nombre, apellidos, cedula, telefono, correo) VALUES ('"
-                + clienteInsertar.getNombre() + "', '"
-                + clienteInsertar.getApellidos() + "', '"
-                + clienteInsertar.getCedula() + "', '"
-                + clienteInsertar.getTelefono() + "', '"
-                + clienteInsertar.getCorreo() + "');";
-        Connector.getConnection().ejecutarStatement(statement);
-        return "El cliente se registró en la base de datos correctamente.";
+    public static String insertarCliente(Cliente cliente) throws Exception {
+        if (buscarClientePorCedula(cliente.getCedula()) != null) {
+            throw new CedulaDuplicadaException("La cédula " + cliente.getCedula() + " ya está registrada en el sistema.");
+        }
+        String sql = "INSERT INTO t_clientes (nombre, apellidos, cedula, telefono, correo) VALUES ('"
+                + cliente.getNombre() + "', '"
+                + cliente.getApellidos() + "', '"
+                + cliente.getCedula() + "', '"
+                + cliente.getTelefono() + "', '"
+                + cliente.getCorreo() + "');";
+        Connector.getConnection().ejecutarStatement(sql);
+        return "Cliente registrado exitosamente";
+    }
+
+    public static Cliente buscarClientePorCedula(String cedula) throws Exception {
+        String sql = "SELECT * FROM t_clientes WHERE cedula = '" + cedula + "';";
+        ResultSet rs = Connector.getConnection().ejecutarQuery(sql);
+        if (rs.next()) {
+            return new Cliente(rs.getString("nombre"), rs.getString("apellidos"), rs.getString("cedula"), rs.getString("telefono"), rs.getString("correo"));
+        }
+        return null;
+    }
+    public static Cliente buscarClientePorID(int idClienteDB) throws Exception {
+        String sql = "SELECT * FROM t_clientes WHERE id = " + idClienteDB + ";";
+        ResultSet rs = Connector.getConnection().ejecutarQuery(sql);
+        if (rs.next()) {
+            return new Cliente(rs.getString("nombre"), rs.getString("apellidos"), rs.getString("cedula"), rs.getString("telefono"), rs.getString("correo"));
+        }
+        return null;
+    }
+
+    public static Cliente obtenerClienteObligatorio(String cedula) throws Exception {
+        Cliente cliente = buscarClientePorCedula(cedula);
+        if (cliente == null) {
+            throw new EntidadNoEncontradaException("No existe ningún cliente registrado con la cédula: " + cedula);
+        }
+        return cliente;
     }
 
     public static ArrayList<Cliente> listarClientes() throws Exception {

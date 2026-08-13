@@ -1,5 +1,9 @@
 package cr.ac.ucenfotec.tl;
 
+import cr.ac.ucenfotec.bl.Exceptions.CedulaDuplicadaException;
+import cr.ac.ucenfotec.bl.Exceptions.EntidadNoEncontradaException;
+import cr.ac.ucenfotec.bl.Exceptions.FechaInvalidaException;
+import cr.ac.ucenfotec.bl.Exceptions.HorarioOcupadoException;
 import cr.ac.ucenfotec.bl.entities.Cliente.Cliente;
 import cr.ac.ucenfotec.bl.entities.Consulta.Consulta;
 import cr.ac.ucenfotec.bl.entities.Mascota.Mascota;
@@ -9,10 +13,12 @@ import cr.ac.ucenfotec.ui.Menu;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
 public class Controller {
+
     // Procesar la selección del menú principal
     public static void procesarSeleccionPrincipal(byte opcion) throws Exception {
         switch (opcion) {
@@ -59,25 +65,33 @@ public class Controller {
                 break;
         }
     }
-    //Registrar Cliente
-    private static void agregarCliente() throws Exception {
-        System.out.println("\n----- Agregar Cliente -----");
-        System.out.print("Ingrese el nombre: ");
-        String nombre = Menu.leerTexto();
+    private static void agregarCliente() {
+        try {
+            System.out.println("\n----- Agregar Cliente -----");
+            System.out.print("Ingrese el nombre: ");
+            String nombre = Menu.leerTexto();
 
-        System.out.print("Ingrese los apellidos: ");
-        String apellidos = Menu.leerTexto();
+            System.out.print("Ingrese los apellidos: ");
+            String apellidos = Menu.leerTexto();
 
-        System.out.print("Ingrese la cédula: ");
-        String cedula = Menu.leerTexto();
+            System.out.print("Ingrese la cédula: ");
+            String cedula = Menu.leerTexto();
 
-        System.out.print("Ingrese el teléfono: ");
-        String telefono = Menu.leerTexto();
+            System.out.print("Ingrese el teléfono: ");
+            String telefono = Menu.leerTexto();
 
-        System.out.print("Ingrese el correo electrónico: ");
-        String correo = Menu.leerTexto();
-        System.out.println(GestorCliente.agregarCliente(nombre, apellidos, cedula, telefono, correo));
+            System.out.print("Ingrese el correo electrónico: ");
+            String correo = Menu.leerTexto();
+
+            System.out.println(GestorCliente.agregarCliente(nombre, apellidos, cedula, telefono, correo));
+
+        } catch (CedulaDuplicadaException e) {
+            System.out.println("\n[ERROR DE DUPLICADO]: " + e.getMessage());
+        } catch (Exception e) {
+            System.out.println("\n[ERROR INESPERADO]: " + e.getMessage());
+        }
     }
+
     // Listar Clientes
     public static void listarClientes() throws Exception {
         ArrayList<Cliente> lista = new ArrayList<>();
@@ -99,12 +113,23 @@ public class Controller {
             System.out.println("ID: " + pareja.getKey() + " | " + pareja.getValue().obtenerFicha());
         }
     }
-    //Modificar Cliente
-    public static void modificarCliente() throws Exception {
-        listarClientesConID();
-        System.out.print("\nIngrese el ID de la base de datos del cliente a modificar: ");
-        int idCliente = Integer.parseInt(Menu.leerTexto());
 
+    // Modificar Cliente
+    public static void modificarCliente() {
+        int idCliente = 0;
+        while (true) {
+            try {
+                listarClientesConID();
+                System.out.print("\nIngrese el ID de la base de datos del cliente a modificar: ");
+                idCliente = Integer.parseInt(Menu.leerTexto());
+                break;
+            } catch (NumberFormatException e) {
+                System.out.println("El dato ingresado no es un número entero válido.");
+            } catch (Exception e) {
+                System.out.println("Error al listar los clientes: " + e.getMessage());
+                return;
+            }
+        }
         System.out.print("Ingrese el nuevo nombre: ");
         String nombre = Menu.leerTexto();
 
@@ -119,15 +144,34 @@ public class Controller {
 
         System.out.print("Ingrese el nuevo correo: ");
         String correo = Menu.leerTexto();
-        System.out.println(GestorCliente.modificarCliente(idCliente, nombre, apellidos, cedula, telefono, correo));
+        try {
+            System.out.println(GestorCliente.modificarCliente(idCliente, nombre, apellidos, cedula, telefono, correo));
+        } catch (Exception e) {
+            System.out.println("\n[ERROR INESPERADO]: " + e.getMessage());
+        }
     }
-    // Eliminar Cliente
-    public static void eliminarCliente() throws Exception {
-        listarClientesConID();
-        System.out.print("\nIngrese el ID de la base de datos del cliente a eliminar: ");
-        int idCliente = Integer.parseInt(Menu.leerTexto());
-        System.out.println(GestorCliente.eliminarCliente(idCliente));
+    public static void eliminarCliente() {
+        int idCliente = 0;
+        while (true) {
+            try {
+                listarClientesConID();
+                System.out.print("\nIngrese el ID de la base de datos del cliente a eliminar: ");
+                idCliente = Integer.parseInt(Menu.leerTexto());
+                break;
+            } catch (NumberFormatException e) {
+                System.out.println("El dato ingresado no es un número entero válido.");
+            } catch (Exception e) {
+                System.out.println("Error al listar los clientes: " + e.getMessage());
+                return;
+            }
+        }
+        try {
+            System.out.println(GestorCliente.eliminarCliente(idCliente));
+        } catch (Exception e) {
+            System.out.println("\n[ERROR INESPERADO]: " + e.getMessage());
+        }
     }
+
     public static void procesarMenuMascotas(byte opcion) throws Exception {
         switch (opcion) {
             case 1:
@@ -150,7 +194,8 @@ public class Controller {
                 break;
         }
     }
-    private static void agregarMascota() throws Exception {
+
+    private static void agregarMascota() {
         System.out.println("\n----- Agregar Mascota -----");
         System.out.print("Ingrese el ID/Código de la mascota: ");
         String idMascota = Menu.leerTexto();
@@ -163,14 +208,41 @@ public class Controller {
 
         System.out.print("Ingrese la raza: ");
         String raza = Menu.leerTexto();
-
-        System.out.print("Ingrese la edad: ");
-        int edad = Integer.parseInt(Menu.leerTexto());
-
-        listarClientesConID();
-        System.out.print("Ingrese el ID del cliente dueño de la mascota: ");
-        int idClienteDB = Integer.parseInt(Menu.leerTexto());
-        System.out.println(GestorMascota.agregarMascota(idMascota, nombre, especie, raza, edad, idClienteDB));
+        int edad = 0;
+        while (true) {
+            try {
+                System.out.print("Ingrese la edad: ");
+                edad = Integer.parseInt(Menu.leerTexto());
+                if (edad < 0) {
+                    System.out.println("La edad no puede ser un número negativo.");
+                } else {
+                    break;
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("El dato ingresado no es un número válido.");
+            }
+        }
+        int idClienteDB = 0;
+        while (true) {
+            try {
+                listarClientesConID();
+                System.out.print("Ingrese el ID del cliente dueño de la mascota: ");
+                idClienteDB = Integer.parseInt(Menu.leerTexto());
+                break;
+            } catch (NumberFormatException e) {
+                System.out.println("El dato ingresado no es un número entero válido.");
+            } catch (Exception e) {
+                System.out.println("Error al listar los clientes: " + e.getMessage());
+                return;
+            }
+        }
+        try {
+            System.out.println(GestorMascota.agregarMascota(idMascota, nombre, especie, raza, edad, idClienteDB));
+        } catch (EntidadNoEncontradaException e) {
+            System.out.println("\n[ERROR DE VALIDACIÓN]: " + e.getMessage());
+        } catch (Exception e) {
+            System.out.println("\n[ERROR INESPERADO]: " + e.getMessage());
+        }
     }
 
     public static void listarMascotas() throws Exception {
@@ -185,6 +257,7 @@ public class Controller {
             }
         }
     }
+
     private static void listarMascotasConID() throws Exception {
         HashMap<Integer, Mascota> listaID = new HashMap<>();
         GestorMascota.listarMascotasID(listaID);
@@ -192,11 +265,22 @@ public class Controller {
             System.out.println("ID: " + pareja.getKey() + " | " + pareja.getValue());
         }
     }
-    public static void modificarMascota() throws Exception {
-        listarMascotasConID();
-        System.out.print("\nIngrese el ID de la base de datos de la mascota a modificar: ");
-        int idMascotaDB = Integer.parseInt(Menu.leerTexto());
 
+    public static void modificarMascota() {
+        int idMascotaDB = 0;
+        while (true) {
+            try {
+                listarMascotasConID();
+                System.out.print("\nIngrese el ID de la base de datos de la mascota a modificar: ");
+                idMascotaDB = Integer.parseInt(Menu.leerTexto());
+                break;
+            } catch (NumberFormatException e) {
+                System.out.println("El dato ingresado no es un número entero válido.");
+            } catch (Exception e) {
+                System.out.println("Error al listar las mascotas: " + e.getMessage());
+                return;
+            }
+        }
         System.out.print("Ingrese el nuevo ID/Código de la mascota: ");
         String idMascota = Menu.leerTexto();
 
@@ -208,18 +292,48 @@ public class Controller {
 
         System.out.print("Ingrese la nueva raza: ");
         String raza = Menu.leerTexto();
-
-        System.out.print("Ingrese la nueva edad: ");
-        int edad = Integer.parseInt(Menu.leerTexto());
-
-        System.out.println(GestorMascota.modificarMascota(idMascotaDB, idMascota, nombre, especie, raza, edad));
+        int edad = 0;
+        while (true) {
+            try {
+                System.out.print("Ingrese la nueva edad: ");
+                edad = Integer.parseInt(Menu.leerTexto());
+                if (edad < 0) {
+                    System.out.println("La edad no puede ser un número negativo.");
+                } else {
+                    break;
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("El dato ingresado no es un número válido.");
+            }
+        }
+        try {
+            System.out.println(GestorMascota.modificarMascota(idMascotaDB, idMascota, nombre, especie, raza, edad));
+        } catch (Exception e) {
+            System.out.println("\n[ERROR INESPERADO]: " + e.getMessage());
+        }
     }
-    public static void eliminarMascota() throws Exception {
-        listarMascotasConID();
-        System.out.print("\nIngrese el ID de la base de datos de la mascota a eliminar: ");
-        int idMascotaDB = Integer.parseInt(Menu.leerTexto());
-        System.out.println(GestorMascota.eliminarMascota(idMascotaDB));
+    public static void eliminarMascota() {
+        int idMascotaDB = 0;
+        while (true) {
+            try {
+                listarMascotasConID();
+                System.out.print("\nIngrese el ID de la base de datos de la mascota a eliminar: ");
+                idMascotaDB = Integer.parseInt(Menu.leerTexto());
+                break;
+            } catch (NumberFormatException e) {
+                System.out.println("El dato ingresado no es un número entero válido.");
+            } catch (Exception e) {
+                System.out.println("Error al listar las mascotas: " + e.getMessage());
+                return;
+            }
+        }
+        try {
+            System.out.println(GestorMascota.eliminarMascota(idMascotaDB));
+        } catch (Exception e) {
+            System.out.println("\n[ERROR INESPERADO]: " + e.getMessage());
+        }
     }
+
     public static void procesarMenuVeterinarios(byte opcion) throws Exception {
         switch (opcion) {
             case 1:
@@ -243,27 +357,36 @@ public class Controller {
         }
     }
 
-    private static void agregarVeterinario() throws Exception {
-        System.out.println("\n----- Agregar Veterinario -----");
-        System.out.print("Ingrese el nombre: ");
-        String nombre = Menu.leerTexto();
+    private static void agregarVeterinario() {
+        try {
+            System.out.println("\n----- Agregar Veterinario -----");
+            System.out.print("Ingrese el nombre: ");
+            String nombre = Menu.leerTexto();
 
-        System.out.print("Ingrese los apellidos: ");
-        String apellidos = Menu.leerTexto();
+            System.out.print("Ingrese los apellidos: ");
+            String apellidos = Menu.leerTexto();
 
-        System.out.print("Ingrese la cédula: ");
-        String cedula = Menu.leerTexto();
+            System.out.print("Ingrese la cédula: ");
+            String cedula = Menu.leerTexto();
 
-        System.out.print("Ingrese el teléfono: ");
-        String telefono = Menu.leerTexto();
+            System.out.print("Ingrese el teléfono: ");
+            String telefono = Menu.leerTexto();
 
-        System.out.print("Ingrese el correo electrónico: ");
-        String correo = Menu.leerTexto();
+            System.out.print("Ingrese el correo electrónico: ");
+            String correo = Menu.leerTexto();
 
-        System.out.print("Ingrese la especialidad: ");
-        String especialidad = Menu.leerTexto();
-        System.out.println(GestorVeterinario.agregarVeterinario(nombre, apellidos, cedula, telefono, correo, especialidad));
+            System.out.print("Ingrese la especialidad: ");
+            String especialidad = Menu.leerTexto();
+
+            System.out.println(GestorVeterinario.agregarVeterinario(nombre, apellidos, cedula, telefono, correo, especialidad));
+
+        } catch (CedulaDuplicadaException e) {
+            System.out.println("\n[ERROR DE DUPLICADO]: " + e.getMessage());
+        } catch (Exception e) {
+            System.out.println("\n[ERROR INESPERADO]: " + e.getMessage());
+        }
     }
+
     public static void listarVeterinarios() throws Exception {
         ArrayList<Veterinario> lista = new ArrayList<>();
         GestorVeterinario.listarVeterinarios(lista);
@@ -285,11 +408,21 @@ public class Controller {
         }
     }
 
-    public static void modificarVeterinario() throws Exception {
-        listarVeterinariosConID();
-        System.out.print("\nIngrese el ID de la base de datos del veterinario a modificar: ");
-        int idVetDB = Integer.parseInt(Menu.leerTexto());
-
+    public static void modificarVeterinario() {
+        int idVetDB = 0;
+        while (true) {
+            try {
+                listarVeterinariosConID();
+                System.out.print("\nIngrese el ID de la base de datos del veterinario a modificar: ");
+                idVetDB = Integer.parseInt(Menu.leerTexto());
+                break;
+            } catch (NumberFormatException e) {
+                System.out.println("El dato ingresado no es un número entero válido.");
+            } catch (Exception e) {
+                System.out.println("Error al listar los veterinarios: " + e.getMessage());
+                return;
+            }
+        }
         System.out.print("Ingrese el nuevo nombre: ");
         String nombre = Menu.leerTexto();
 
@@ -307,15 +440,34 @@ public class Controller {
 
         System.out.print("Ingrese la nueva especialidad: ");
         String especialidad = Menu.leerTexto();
-        System.out.println(GestorVeterinario.modificarVeterinario(idVetDB, nombre, apellidos, cedula, telefono, correo, especialidad));
+        try {
+            System.out.println(GestorVeterinario.modificarVeterinario(idVetDB, nombre, apellidos, cedula, telefono, correo, especialidad));
+        } catch (Exception e) {
+            System.out.println("\n[ERROR INESPERADO]: " + e.getMessage());
+        }
+    }
+    public static void eliminarVeterinario() {
+        int idVetDB = 0;
+        while (true) {
+            try {
+                listarVeterinariosConID();
+                System.out.print("\nIngrese el ID de la base de datos del veterinario a eliminar: ");
+                idVetDB = Integer.parseInt(Menu.leerTexto());
+                break;
+            } catch (NumberFormatException e) {
+                System.out.println("El dato ingresado no es un número entero válido.");
+            } catch (Exception e) {
+                System.out.println("Error al listar los veterinarios: " + e.getMessage());
+                return;
+            }
+        }
+        try {
+            System.out.println(GestorVeterinario.eliminarVeterinario(idVetDB));
+        } catch (Exception e) {
+            System.out.println("\n[ERROR INESPERADO]: " + e.getMessage());
+        }
     }
 
-    public static void eliminarVeterinario() throws Exception {
-        listarVeterinariosConID();
-        System.out.print("\nIngrese el ID de la base de datos del veterinario a eliminar: ");
-        int idVetDB = Integer.parseInt(Menu.leerTexto());
-        System.out.println(GestorVeterinario.eliminarVeterinario(idVetDB));
-    }
     public static void procesarMenuConsultas(byte opcion) throws Exception {
         switch (opcion) {
             case 1:
@@ -338,29 +490,83 @@ public class Controller {
                 break;
         }
     }
-
-    private static void agregarConsulta() throws Exception {
+    private static void agregarConsulta() {
         System.out.println("\n----- Programar Consulta -----");
         System.out.print("Ingrese el tipo de consulta (ej. Control, Emergencia, Accidente): ");
         String tipo = Menu.leerTexto();
-
-        System.out.print("Ingrese la fecha (YYYY-MM-DD): ");
-        LocalDate fecha = LocalDate.parse(Menu.leerTexto());
-
-        System.out.print("Ingrese la hora (HH:MM): ");
-        LocalTime hora = LocalTime.parse(Menu.leerTexto());
-
-        System.out.print("Ingrese el costo estimado: ");
-        double costo = Double.parseDouble(Menu.leerTexto());
-
-        listarMascotasConID();
-        System.out.print("Ingrese el ID de la base de datos de la mascota: ");
-        int idMascota = Integer.parseInt(Menu.leerTexto());
-
-        listarVeterinariosConID();
-        System.out.print("Ingrese el ID de la base de datos del veterinario: ");
-        int idVeterinario = Integer.parseInt(Menu.leerTexto());
-        System.out.println(GestorConsulta.agregarConsulta(tipo, fecha, hora, costo, idMascota, idVeterinario));
+        LocalDate fecha = null;
+        while (true) {
+            try {
+                System.out.print("Ingrese la fecha (YYYY-MM-DD): ");
+                fecha = LocalDate.parse(Menu.leerTexto());
+                break;
+            } catch (DateTimeParseException e) {
+                System.out.println("Formato de fecha inválido. Debe utilizar YYYY-MM-DD.");
+            }
+        }
+        LocalTime hora = null;
+        while (true) {
+            try {
+                System.out.print("Ingrese la hora (HH:MM): ");
+                hora = LocalTime.parse(Menu.leerTexto());
+                break;
+            } catch (DateTimeParseException e) {
+                System.out.println("Formato de hora inválido. Debe utilizar HH:MM.");
+            }
+        }
+        double costo = 0;
+        while (true) {
+            try {
+                System.out.print("Ingrese el costo estimado: ");
+                costo = Double.parseDouble(Menu.leerTexto());
+                if (costo < 0) {
+                    System.out.println("El costo no puede ser un monto negativo.");
+                } else {
+                    break;
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("El dato ingresado no es un monto numérico válido.");
+            }
+        }
+        int idMascota = 0;
+        while (true) {
+            try {
+                listarMascotasConID();
+                System.out.print("Ingrese el ID de la base de datos de la mascota: ");
+                idMascota = Integer.parseInt(Menu.leerTexto());
+                break;
+            } catch (NumberFormatException e) {
+                System.out.println("El dato ingresado no es un número entero válido.");
+            } catch (Exception e) {
+                System.out.println("Error al listar mascotas: " + e.getMessage());
+                return;
+            }
+        }
+        int idVeterinario = 0;
+        while (true) {
+            try {
+                listarVeterinariosConID();
+                System.out.print("Ingrese el ID de la base de datos del veterinario: ");
+                idVeterinario = Integer.parseInt(Menu.leerTexto());
+                break;
+            } catch (NumberFormatException e) {
+                System.out.println("El dato ingresado no es un número entero válido.");
+            } catch (Exception e) {
+                System.out.println("Error al listar veterinarios: " + e.getMessage());
+                return;
+            }
+        }
+        try {
+            System.out.println(GestorConsulta.agregarConsulta(tipo, fecha, hora, costo, "Por definir", "Programada", idMascota, idVeterinario));
+        } catch (EntidadNoEncontradaException e) {
+            System.out.println("\n[ERROR DE VALIDACIÓN]: " + e.getMessage());
+        } catch (FechaInvalidaException e) {
+            System.out.println("\n[ERROR DE FECHA]: " + e.getMessage());
+        } catch (HorarioOcupadoException e) {
+            System.out.println("\n[ERROR DE AGENDA]: " + e.getMessage());
+        } catch (Exception e) {
+            System.out.println("\n[ERROR INESPERADO]: " + e.getMessage());
+        }
     }
 
     public static void listarConsultas() throws Exception {
@@ -384,38 +590,87 @@ public class Controller {
         }
     }
 
-    public static void modificarConsulta() throws Exception {
-        listarConsultasConID();
-        System.out.print("\nIngrese el ID de la base de datos de la consulta a modificar: ");
-        int idConsultaDB = Integer.parseInt(Menu.leerTexto());
-
+    public static void modificarConsulta() {
+        int idConsultaDB = 0;
+        while (true) {
+            try {
+                listarConsultasConID();
+                System.out.print("\nIngrese el ID de la base de datos de la consulta a modificar: ");
+                idConsultaDB = Integer.parseInt(Menu.leerTexto());
+                break;
+            } catch (NumberFormatException e) {
+                System.out.println("El dato ingresado no es un número entero válido.");
+            } catch (Exception e) {
+                System.out.println("Error al listar las consultas: " + e.getMessage());
+                return;
+            }
+        }
         System.out.print("Ingrese el nuevo tipo: ");
         String tipo = Menu.leerTexto();
-
-        System.out.print("Ingrese la nueva fecha (YYYY-MM-DD): ");
-        LocalDate fecha = LocalDate.parse(Menu.leerTexto());
-
-        System.out.print("Ingrese la nueva hora (HH:MM): ");
-        LocalTime hora = LocalTime.parse(Menu.leerTexto());
-
-        System.out.print("Ingrese el nuevo costo: ");
-        double costo = Double.parseDouble(Menu.leerTexto());
-
+        LocalDate fecha = null;
+        while (true) {
+            try {
+                System.out.print("Ingrese la nueva fecha (YYYY-MM-DD): ");
+                fecha = LocalDate.parse(Menu.leerTexto());
+                break;
+            } catch (DateTimeParseException e) {
+                System.out.println("Formato de fecha inválido. Debe utilizar YYYY-MM-DD.");
+            }
+        }
+        LocalTime hora = null;
+        while (true) {
+            try {
+                System.out.print("Ingrese la nueva hora (HH:MM): ");
+                hora = LocalTime.parse(Menu.leerTexto());
+                break;
+            } catch (DateTimeParseException e) {
+                System.out.println("Formato de hora inválido. Debe utilizar HH:MM.");
+            }
+        }
+        double costo = 0;
+        while (true) {
+            try {
+                System.out.print("Ingrese el nuevo costo: ");
+                costo = Double.parseDouble(Menu.leerTexto());
+                if (costo < 0) {
+                    System.out.println("El costo no puede ser un monto negativo.");
+                } else {
+                    break;
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("El dato ingresado no es un monto numérico válido.");
+            }
+        }
         System.out.print("Ingrese el diagnóstico: ");
         String diagnostico = Menu.leerTexto();
 
         System.out.print("Ingrese el estado (Programada / En progreso / Completado / Cancelada): ");
         String estado = Menu.leerTexto();
-        System.out.println(GestorConsulta.modificarConsulta(idConsultaDB, tipo, fecha, hora, costo, diagnostico, estado));
+        try {
+            System.out.println(GestorConsulta.modificarConsulta(idConsultaDB, tipo, fecha, hora, costo, diagnostico, estado));
+        } catch (Exception e) {
+            System.out.println("\n[ERROR INESPERADO]: " + e.getMessage());
+        }
     }
-    public static void eliminarConsulta() throws Exception {
-        listarConsultasConID();
-        System.out.print("\nIngrese el ID de la base de datos de la consulta a eliminar: ");
-        int idConsultaDB = Integer.parseInt(Menu.leerTexto());
-        System.out.println(GestorConsulta.eliminarConsulta(idConsultaDB));
+    public static void eliminarConsulta() {
+        int idConsultaDB = 0;
+        while (true) {
+            try {
+                listarConsultasConID();
+                System.out.print("\nIngrese el ID de la base de datos de la consulta a eliminar: ");
+                idConsultaDB = Integer.parseInt(Menu.leerTexto());
+                break;
+            } catch (NumberFormatException e) {
+                System.out.println("El dato ingresado no es un número entero válido.");
+            } catch (Exception e) {
+                System.out.println("Error al listar las consultas: " + e.getMessage());
+                return;
+            }
+        }
+        try {
+            System.out.println(GestorConsulta.eliminarConsulta(idConsultaDB));
+        } catch (Exception e) {
+            System.out.println("\n[ERROR INESPERADO]: " + e.getMessage());
+        }
     }
-
 }
-
-
-

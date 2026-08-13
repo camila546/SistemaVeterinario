@@ -1,5 +1,6 @@
 package cr.ac.ucenfotec.bl.logic;
 
+import cr.ac.ucenfotec.bl.Exceptions.EntidadNoEncontradaException;
 import cr.ac.ucenfotec.bl.entities.Mascota.DAOMascota;
 import cr.ac.ucenfotec.bl.entities.Mascota.Mascota;
 
@@ -8,7 +9,8 @@ import java.util.HashMap;
 
 public class GestorMascota {
 
-    public static String agregarMascota(String idMascota, String nombre, String especie, String raza, int edad, int idClienteDB) throws Exception {
+    public static String agregarMascota(String idMascota, String nombre, String especie, String raza, int edad, int idClienteDB)
+            throws EntidadNoEncontradaException, Exception {
         Mascota nuevaMascota = new Mascota(idMascota, nombre, especie, raza, edad);
         return DAOMascota.insertarMascota(nuevaMascota, idClienteDB);
     }

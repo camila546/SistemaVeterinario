@@ -1,5 +1,8 @@
 package cr.ac.ucenfotec.bl.logic;
 
+import cr.ac.ucenfotec.bl.Exceptions.EntidadNoEncontradaException;
+import cr.ac.ucenfotec.bl.Exceptions.FechaInvalidaException;
+import cr.ac.ucenfotec.bl.Exceptions.HorarioOcupadoException;
 import cr.ac.ucenfotec.bl.entities.Consulta.DAOConsulta;
 import cr.ac.ucenfotec.bl.entities.Consulta.Consulta;
 import cr.ac.ucenfotec.bl.entities.Mascota.Mascota;
@@ -12,8 +15,18 @@ import java.util.HashMap;
 
 public class GestorConsulta {
 
-    public static String agregarConsulta(String tipo, LocalDate fecha, LocalTime hora, double costo, int idMascotaDB, int idVeterinarioDB) throws Exception {
+    public static String agregarConsulta(String tipo, LocalDate fecha, LocalTime hora, double costo, String diagnostico, String estado, int idMascotaDB, int idVeterinarioDB)
+            throws FechaInvalidaException, HorarioOcupadoException, EntidadNoEncontradaException, Exception {
+        if (fecha.isBefore(LocalDate.now())) {
+            throw new FechaInvalidaException("No se puede programar una consulta para una fecha pasada.");
+        }
+
+        if (DAOConsulta.existeCitaEnHorario(idVeterinarioDB, idMascotaDB, fecha, hora)) {
+            throw new HorarioOcupadoException("El veterinario o la mascota ya tienen una consulta asignada para esa fecha y hora.");
+        }
         Consulta nuevaConsulta = new Consulta(tipo, fecha, hora, costo, null, null);
+        nuevaConsulta.setDiagnostico(diagnostico);
+        nuevaConsulta.setEstado(estado);
         return DAOConsulta.insertarConsulta(nuevaConsulta, idMascotaDB, idVeterinarioDB);
     }
 
